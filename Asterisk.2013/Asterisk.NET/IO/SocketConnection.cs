@@ -3,6 +3,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using System;
+using System.Net.Security;
 
 namespace AsterNET.IO
 {
@@ -14,22 +15,37 @@ namespace AsterNET.IO
 		private BinaryWriter writer;
 		private Encoding encoding;
 		private bool initial;
+        private readonly SslStream sslStream;
+        private readonly bool isSsl;
 
-		#region Constructor - SocketConnection(string host, int port, int receiveTimeout) 
-		/// <summary>
-		/// Consructor
-		/// </summary>
-		/// <param name="host">client host</param>
-		/// <param name="port">client port</param>
-		/// <param name="encoding">encoding</param>
-		public SocketConnection(string host, int port, Encoding encoding)
+        #region Constructor - SocketConnection(string host, int port, int receiveTimeout, bool ssl) 
+        /// <summary>
+        /// Consructor
+        /// </summary>
+        /// <param name="host">client host</param>
+        /// <param name="port">client port</param>
+        /// <param name="encoding">encoding</param>
+        /// <param name="ssl">ssl</param>
+        public SocketConnection(string host, int port, Encoding encoding, bool ssl = false)
 		{
 			initial = true;
 			this.encoding = encoding;
 			this.tcpClient = new TcpClient(host, port);
 			this.networkStream = this.tcpClient.GetStream();
-			this.reader = new StreamReader(this.networkStream, encoding);
-			this.writer = new BinaryWriter(this.networkStream, encoding);
+			this.isSsl = ssl;
+			
+            if (this.isSsl)
+            {
+				this.sslStream = new SslStream(this.networkStream);
+				this.sslStream.AuthenticateAsClient(host);
+				this.reader = new StreamReader(this.sslStream, encoding);
+				this.writer = new BinaryWriter(this.sslStream, encoding);
+			}
+            else
+            {
+				this.reader = new StreamReader(this.networkStream, encoding);
+				this.writer = new BinaryWriter(this.networkStream, encoding);
+			}
 		}
 		#endregion
 
@@ -59,6 +75,12 @@ namespace AsterNET.IO
 		{
 			get { return networkStream; }
 		}
+		
+		public SslStream SslStream
+		{
+			get { return sslStream; }
+		}
+
 
 		public Encoding Encoding
 		{
@@ -119,6 +141,15 @@ namespace AsterNET.IO
 				return ((IPEndPoint)(tcpClient.Client.LocalEndPoint)).Port;
 			}
 		}
+
+		/// <summary>
+		/// Return if this is tls connection
+		/// </summary>
+		public bool IsSsl
+		{
+			get { return isSsl; }
+		}
+
 		#endregion
 
 		#region ReadLine()
@@ -169,8 +200,16 @@ namespace AsterNET.IO
 		public void WriteEx(string msg)
 		{
 			byte[] data = encoding.GetBytes(msg);
-			networkStream.BeginWrite(data, 0, data.Length, onWriteFinished, networkStream);
-			networkStream.Flush();
+			if (!this.isSsl)
+			{
+				networkStream.BeginWrite(data, 0, data.Length, onWriteFinished, networkStream);
+				networkStream.Flush();
+			}
+			else
+			{
+				sslStream.BeginWrite(data, 0, data.Length, onWriteFinished, sslStream);
+				sslStream.Flush();
+			}
 		}
 
 		private void onWriteFinished(IAsyncResult ar)

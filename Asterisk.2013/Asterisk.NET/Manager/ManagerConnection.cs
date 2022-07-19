@@ -129,6 +129,7 @@ namespace AsterNET.Manager
 		private SocketConnection mrSocket;
 		private Thread mrReaderThread;
 		private ManagerReader mrReader;
+		private readonly bool isSsl;
 
 		private int defaultResponseTimeout = 2000;
 		private int defaultEventTimeout = 5000;
@@ -684,17 +685,20 @@ namespace AsterNET.Manager
 		/// <param name="port">the port where Asterisk listens for incoming Manager API connections, usually 5038.</param>
 		/// <param name="username">the username to use for login</param>
 		/// <param name="password">the password to use for login</param>
-		public ManagerConnection(string hostname, int port, string username, string password)
+		/// <param name="isSsl">is tls connection</param>
+		public ManagerConnection(string hostname, int port, string username, string password, bool isSsl=false)
 			: this()
 		{
 			this.hostname = hostname;
 			this.port = port;
 			this.username = username;
 			this.password = password;
+            this.isSsl = isSsl;
 		}
 		#endregion
 
 		#region Constructor - ManagerConnection(hostname, port, username, password, Encoding socketEncoding)
+
 		/// <summary>
 		/// Creates a new instance with the given connection parameters.
 		/// </summary>
@@ -703,7 +707,8 @@ namespace AsterNET.Manager
 		/// <param name="username">the username to use for login</param>
 		/// <param name="password">the password to use for login</param>
 		/// <param name="socketEncoding">text encoding to asterisk input/output stream</param>
-		public ManagerConnection(string hostname, int port, string username, string password, Encoding encoding)
+		/// <param name="isSsl">is tls connection</param>
+		public ManagerConnection(string hostname, int port, string username, string password, Encoding encoding, bool isSsl=false)
 			: this()
 		{
 			this.hostname = hostname;
@@ -711,6 +716,7 @@ namespace AsterNET.Manager
 			this.username = username;
 			this.password = password;
 			this.socketEncoding = encoding;
+			this.isSsl = isSsl;
 		}
 		#endregion
 
@@ -1720,7 +1726,7 @@ namespace AsterNET.Manager
 #endif
 					try
 					{
-						mrSocket = new SocketConnection(hostname, port, socketEncoding);
+						mrSocket = new SocketConnection(hostname, port, socketEncoding, isSsl);
 						result = mrSocket.IsConnected;
 					}
 #if LOGGER
