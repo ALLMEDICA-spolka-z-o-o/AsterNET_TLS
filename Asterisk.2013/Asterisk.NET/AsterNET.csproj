@@ -242,6 +242,8 @@
     <Compile Include="Manager\Event\QueueCallerLeaveEvent.cs" />
     <Compile Include="Manager\Event\MeetmeMuteEvent.cs" />
     <Compile Include="Manager\Event\DTMFEvent.cs" />
+    <Compile Include="Manager\Event\DTMFBeginEvent.cs" />
+    <Compile Include="Manager\Event\DTMFEndEvent.cs" />
     <Compile Include="Manager\Event\FaxReceivedEvent.cs" />
     <Compile Include="Manager\Event\JabberEvent.cs" />
     <Compile Include="Manager\Event\JitterBufStatsEvent.cs" />

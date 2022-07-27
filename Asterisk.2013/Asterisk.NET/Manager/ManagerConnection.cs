@@ -35,6 +35,8 @@ namespace AsterNET.Manager
 	public delegate void DBGetResponseEventHandler(object sender, Event.DBGetResponseEvent e);
 	public delegate void DialEventHandler(object sender, Event.DialEvent e);
 	public delegate void DTMFEventHandler(object sender, Event.DTMFEvent e);
+	public delegate void DTMFBeginEventHandler(object sender, Event.DTMFBeginEvent e);
+	public delegate void DTMFEndEventHandler(object sender, Event.DTMFEndEvent e);
 	public delegate void DNDStateEventHandler(object sender, Event.DNDStateEvent e);
 	public delegate void ExtensionStatusEventHandler(object sender, Event.ExtensionStatusEvent e);
 	public delegate void HangupEventHandler(object sender, Event.HangupEvent e);
@@ -248,6 +250,8 @@ namespace AsterNET.Manager
 		/// </summary>
 		public event DialEventHandler Dial;
 		public event DTMFEventHandler DTMF;
+		public event DTMFBeginEventHandler DTMFBegin;
+		public event DTMFEndEventHandler DTMFEnd;
 		/// <summary>
 		/// A DNDStateEvent is triggered by the Zap channel driver when a channel enters or leaves DND (do not disturb) state.
 		/// </summary>
@@ -641,6 +645,8 @@ namespace AsterNET.Manager
 			Helper.RegisterEventHandler(registeredEventHandlers, 63, typeof(BridgeEvent));
 			Helper.RegisterEventHandler(registeredEventHandlers, 64, typeof(TransferEvent));
 			Helper.RegisterEventHandler(registeredEventHandlers, 65, typeof(DTMFEvent));
+			Helper.RegisterEventHandler(registeredEventHandlers, 66, typeof(DTMFBeginEvent));
+			Helper.RegisterEventHandler(registeredEventHandlers, 67, typeof(DTMFEndEvent));
 
 			Helper.RegisterEventHandler(registeredEventHandlers, 70, typeof(VarSetEvent));
 			Helper.RegisterEventHandler(registeredEventHandlers, 80, typeof(AGIExecEvent));
@@ -1208,6 +1214,19 @@ namespace AsterNET.Manager
 						{
 							DTMF(this, (DTMFEvent)e);
 						}
+						break;
+					case 66:
+						if (DTMFBegin != null)
+						{
+							DTMFBegin(this, (DTMFBeginEvent)e);
+						}
+						break;
+					case 67:
+						if (DTMFEnd != null)
+						{
+							DTMFEnd(this, (DTMFEndEvent)e);
+						}
+
 						break;
 					case 70:
 						if (VarSet != null)
