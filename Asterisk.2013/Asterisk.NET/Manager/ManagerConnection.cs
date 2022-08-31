@@ -26,6 +26,7 @@ namespace AsterNET.Manager
 	public delegate void AgentDumpEventHandler(object sender, Event.AgentDumpEvent e);
 	public delegate void AgentLoginEventHandler(object sender, Event.AgentLoginEvent e);
 	public delegate void AgentLogoffEventHandler(object sender, Event.AgentLogoffEvent e);
+	public delegate void AgentRingNoAnswerEventHandler(object sender, Event.AgentRingNoAnswerEvent e);
 	public delegate void AgentsCompleteEventHandler(object sender, Event.AgentsCompleteEvent e);
 	public delegate void AgentsEventHandler(object sender, Event.AgentsEvent e);
 	public delegate void AlarmClearEventHandler(object sender, Event.AlarmClearEvent e);
@@ -220,6 +221,10 @@ namespace AsterNET.Manager
 		/// An AgentCallbackLogoffEvent is triggered when an agent that previously logged in using AgentLogin is logged of.
 		/// </summary>
 		public event AgentLogoffEventHandler AgentLogoff;
+		/// <summary>
+		/// An AgentRingNoAnswerEventHandler is triggered when a caller was disconnected from agent due no answer.
+		/// </summary>
+		public event AgentRingNoAnswerEventHandler AgentRingNoAnswer;
 		/// <summary>
 		/// An AgentsCompleteEvent is triggered after the state of all agents has been reported in response to an AgentsAction.
 		/// </summary>
@@ -588,6 +593,8 @@ namespace AsterNET.Manager
 			Helper.RegisterEventHandler(registeredEventHandlers, 11, typeof(AlarmEvent));
 			Helper.RegisterEventHandler(registeredEventHandlers, 12, typeof(CdrEvent));
 
+			Helper.RegisterEventHandler(registeredEventHandlers, 13, typeof(AgentRingNoAnswerEvent));
+			
 			Helper.RegisterEventHandler(registeredEventHandlers, 14, typeof(DBGetResponseEvent));
 			Helper.RegisterEventHandler(registeredEventHandlers, 15, typeof(DialEvent));
 
@@ -857,6 +864,13 @@ namespace AsterNET.Manager
 						if (Cdr != null)
 						{
 							Cdr(this, (CdrEvent)e);
+							return;
+						}
+						break;
+					case 13:
+						if (AgentRingNoAnswer != null)
+						{
+							AgentRingNoAnswer(this, (Event.AgentRingNoAnswerEvent)e);
 							return;
 						}
 						break;
