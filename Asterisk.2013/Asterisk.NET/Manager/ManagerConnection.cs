@@ -29,9 +29,10 @@ namespace AsterNET.Manager
         private string username;
         private string password;
 
-        private SocketConnection mrSocket;
-        private Thread mrReaderThread;
-        private ManagerReader mrReader;
+		private SocketConnection mrSocket;
+		private Thread mrReaderThread;
+		private ManagerReader mrReader;
+		private readonly bool isSsl;
 
         private int defaultResponseTimeout = 2000;
         private int defaultEventTimeout = 5000;
@@ -643,43 +644,48 @@ namespace AsterNET.Manager
         }
         #endregion
 
-        #region Constructor - ManagerConnection(hostname, port, username, password)
-        /// <summary>
-        /// Creates a new instance with the given connection parameters.
-        /// </summary>
-        /// <param name="hostname">the hosname of the Asterisk server to connect to.</param>
-        /// <param name="port">the port where Asterisk listens for incoming Manager API connections, usually 5038.</param>
-        /// <param name="username">the username to use for login</param>
-        /// <param name="password">the password to use for login</param>
-        public ManagerConnection(string hostname, int port, string username, string password)
-            : this()
-        {
-            this.hostname = hostname;
-            this.port = port;
-            this.username = username;
-            this.password = password;
-        }
-        #endregion
+		#region Constructor - ManagerConnection(hostname, port, username, password, isSsl)
+		/// <summary>
+		/// Creates a new instance with the given connection parameters.
+		/// </summary>
+		/// <param name="hostname">the hosname of the Asterisk server to connect to.</param>
+		/// <param name="port">the port where Asterisk listens for incoming Manager API connections, usually 5038.</param>
+		/// <param name="username">the username to use for login</param>
+		/// <param name="password">the password to use for login</param>
+		/// <param name="isSsl">is tls connection</param>
+		public ManagerConnection(string hostname, int port, string username, string password, bool isSsl=false)
+			: this()
+		{
+			this.hostname = hostname;
+			this.port = port;
+			this.username = username;
+			this.password = password;
+            this.isSsl = isSsl;
+		}
+		#endregion
 
-        #region Constructor - ManagerConnection(hostname, port, username, password, Encoding socketEncoding)
-        /// <summary>
-        /// Creates a new instance with the given connection parameters.
-        /// </summary>
-        /// <param name="hostname">the hosname of the Asterisk server to connect to.</param>
-        /// <param name="port">the port where Asterisk listens for incoming Manager API connections, usually 5038.</param>
-        /// <param name="username">the username to use for login</param>
-        /// <param name="password">the password to use for login</param>
-        /// <param name="socketEncoding">text encoding to asterisk input/output stream</param>
-        public ManagerConnection(string hostname, int port, string username, string password, Encoding socketEncoding)
-            : this()
-        {
-            this.hostname = hostname;
-            this.port = port;
-            this.username = username;
-            this.password = password;
-            this.socketEncoding = socketEncoding;
-        }
-        #endregion
+		#region Constructor - ManagerConnection(hostname, port, username, password, Encoding socketEncoding, bool isSsl)
+
+		/// <summary>
+		/// Creates a new instance with the given connection parameters.
+		/// </summary>
+		/// <param name="hostname">the hosname of the Asterisk server to connect to.</param>
+		/// <param name="port">the port where Asterisk listens for incoming Manager API connections, usually 5038.</param>
+		/// <param name="username">the username to use for login</param>
+		/// <param name="password">the password to use for login</param>
+		/// <param name="socketEncoding">text encoding to asterisk input/output stream</param>
+		/// <param name="isSsl">is tls connection</param>
+		public ManagerConnection(string hostname, int port, string username, string password, Encoding socketEncoding, bool isSsl=false)
+			: this()
+		{
+			this.hostname = hostname;
+			this.port = port;
+			this.username = username;
+			this.password = password;
+			this.socketEncoding = socketEncoding;
+			this.isSsl = isSsl;
+		}
+		#endregion
 
         /// <summary>
         /// Default Fast Reconnect retry counter.
@@ -1140,14 +1146,14 @@ namespace AsterNET.Manager
 #if LOGGER
                     logger.Info("Connecting to {0}:{1}", hostname, port);
 #endif
-                    try
-                    {
-                        if (SocketReceiveBufferSize>0)
-                            mrSocket = new SocketConnection(hostname, port, SocketReceiveBufferSize, socketEncoding);
-                        else
-                            mrSocket = new SocketConnection(hostname, port, socketEncoding);
-                        result = mrSocket.IsConnected;
-                    }
+					try
+					{
+						if (SocketReceiveBufferSize>0)
+							mrSocket = new SocketConnection(hostname, port, SocketReceiveBufferSize, socketEncoding, isSsl);
+						else
+							mrSocket = new SocketConnection(hostname, port, socketEncoding, isSsl);
+						result = mrSocket.IsConnected;
+					}
 #if LOGGER
                     catch (Exception ex)
                     {

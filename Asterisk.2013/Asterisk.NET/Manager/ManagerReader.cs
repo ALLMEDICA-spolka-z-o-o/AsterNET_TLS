@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using AsterNET.IO;
@@ -109,8 +110,14 @@ namespace AsterNET.Manager
 				return;
 			}
 
-			NetworkStream nstream = mrSocket.NetworkStream;
-			if (nstream == null)
+			Stream stream;
+
+			if (mrSocket.IsSsl)
+				stream = mrSocket.SslStream;
+			else
+				stream = mrSocket.NetworkStream;
+			
+			if (stream == null)
 			{
 				// No network stream - it's DISCONNECT !!!
 				disconnect = true;
@@ -119,7 +126,7 @@ namespace AsterNET.Manager
 
 			try
 			{
-				int count = nstream.EndRead(ar);
+				int count = stream.EndRead(ar);
 				if (count == 0)
 				{
 					// No received data - it's may be DISCONNECT !!!
@@ -142,7 +149,7 @@ namespace AsterNET.Manager
 						lineQueue.Enqueue(line);
 					}
 				// Give a next portion !!!
-				nstream.BeginRead(mrReader.lineBytes, 0, mrReader.lineBytes.Length, mrReaderCallbback, mrReader);
+				stream.BeginRead(mrReader.lineBytes, 0, mrReader.lineBytes.Length, mrReaderCallbback, mrReader);
 			}
 #if LOGGER
 			catch (Exception ex)
@@ -176,7 +183,11 @@ namespace AsterNET.Manager
 			lastPacketTime = DateTime.Now;
 			wait4identiier = true;
 			processingCommandResult = false;
-			mrSocket.NetworkStream.BeginRead(lineBytes, 0, lineBytes.Length, mrReaderCallbback, this);
+			if(!mrSocket.IsSsl)
+				mrSocket.NetworkStream.BeginRead(lineBytes, 0, lineBytes.Length, mrReaderCallbback, this);
+			else
+				mrSocket.SslStream.BeginRead(lineBytes, 0, lineBytes.Length, mrReaderCallbback, this);
+
 			lastPacketTime = DateTime.Now;
 		}
 
