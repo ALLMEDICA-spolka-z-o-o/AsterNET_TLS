@@ -41,6 +41,7 @@ namespace AsterNET.IO
 		/// <param name="port">client port</param>
 		/// <param name="encoding">encoding</param>
 		/// <param name="receiveBufferSize">size of the receive buffer.</param>
+		/// <param name="ssl">ssl</param>
 		public SocketConnection(string host, int port, int receiveBufferSize, Encoding encoding, bool ssl = false)
 			: this (new TcpClient(host, port) {ReceiveBufferSize = receiveBufferSize }, encoding, host, ssl)
 		{
@@ -54,8 +55,9 @@ namespace AsterNET.IO
 		/// </summary>
 		/// <param name="tcpClient">TCP client from Listener</param>
 		/// <param name="encoding">encoding</param>
-		/// <param name="isSsl">ssl</param>
-		internal SocketConnection(TcpClient tcpClient, Encoding encoding, string host, bool ssl)
+		/// <param name="host">ssl host</param>
+		/// <param name="ssl">ssl</param>
+		internal SocketConnection(TcpClient tcpClient, Encoding encoding, string host = "", bool ssl = false)
 		{
 			initial = true;
 			this.encoding = encoding;
@@ -212,16 +214,8 @@ namespace AsterNET.IO
 		public void WriteEx(string msg)
 		{
 			byte[] data = encoding.GetBytes(msg);
-			if (!this.isSsl)
-			{
-				networkStream.BeginWrite(data, 0, data.Length, onWriteFinished, networkStream);
-				networkStream.Flush();
-			}
-			else
-			{
-				sslStream.BeginWrite(data, 0, data.Length, onWriteFinished, sslStream);
-				sslStream.Flush();
-			}
+			networkStream.BeginWrite(data, 0, data.Length, onWriteFinished, networkStream);
+			networkStream.Flush();
 		}
 
 		private void onWriteFinished(IAsyncResult ar)
